@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	baseAssetsUrl   = "https://github.githubassets.com/images/icons/emoji/unicode/"
+	baseAssetsUrl   = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/"
 	baseMappingsUrl = "https://raw.githubusercontent.com/muan/emojilib/main/dist/emoji-en-US.json"
 )
 
