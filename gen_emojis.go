@@ -1,5 +1,3 @@
-//go:generate go run gen_emojis.go
-
 package main
 
 import (
@@ -14,8 +12,7 @@ import (
 )
 
 const (
-	version         = "14.0.2"
-	baseAssetsUrl   = "https://raw.githubusercontent.com/twitter/twemoji/gh-pages/v/" + version + "/72x72/"
+	baseAssetsUrl   = "https://github.githubassets.com/images/icons/emoji/unicode/"
 	baseMappingsUrl = "https://raw.githubusercontent.com/muan/emojilib/main/dist/emoji-en-US.json"
 )
 
@@ -132,21 +129,13 @@ func downloadFile(url, path string) error {
 func emojiToHex(emoji string) (output string) {
 	var hexParts []string
 	for _, r := range []rune(emoji) {
-		switch {
-		// Ignore variation selector-16
-		case r != 0xFE0F:
-			hexParts = append(hexParts, fmt.Sprintf("%x", r))
-			goto exit
-
-		// Ignore zero width joiner and return the first part
-		case r == 0x200D:
-			hexParts = append(hexParts, fmt.Sprintf("%x", r))
-			hexParts = hexParts[:len(hexParts)-1]
-			goto exit
+		if r == 0xfe0f {
+			// Skip the variation selector
+			continue
 		}
+		hexParts = append(hexParts, fmt.Sprintf("%04x", r))
 	}
 
-exit:
 	output = strings.Join(hexParts, "-")
 	return
 }
