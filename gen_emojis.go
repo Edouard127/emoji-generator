@@ -6,9 +6,8 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
-	"sync"
-	"time"
 )
 
 const (
@@ -48,54 +47,13 @@ func constructEmojis(emojiMap emojiMappings) ([]Emoji, error) {
 	var emojis []Emoji
 
 	for emoji, names := range emojiMap {
-		hexName := emojiToHex(emoji)
-
 		emojis = append(emojis, Emoji{
-			Name: names[0], // Take the first name
-			Png:  baseAssetsUrl + hexName + ".png",
+			Name: toSnakeCase(names[0]),
+			Png:  baseAssetsUrl + emojiToHex(emoji) + ".png",
 		})
 	}
 
 	return emojis, nil
-}
-
-func main() {
-	fmt.Println("Downloading mappings...")
-	emojiMap, err := downloadMappings()
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println("Downloading emojis...")
-	emojis, err := constructEmojis(emojiMap)
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println("Writing emojis to disk...")
-	err = os.MkdirAll("emojis", 0755)
-	if err != nil {
-		panic(err)
-	}
-
-	var wg sync.WaitGroup
-	wg.Add(len(emojis))
-
-	start := time.Now()
-
-	for _, emoji := range emojis {
-		go func(e Emoji) {
-			defer wg.Done()
-			err := downloadFile(e.Png, "emojis/"+e.Name+".png")
-			if err != nil {
-				fmt.Printf("Failed to download %s (%s): %v\n", e.Png, e.Name, err)
-			}
-		}(emoji)
-	}
-
-	wg.Wait()
-
-	fmt.Println("Downloaded", len(emojis), "emojis in", time.Since(start))
 }
 
 func downloadFile(url, path string) error {
@@ -138,4 +96,10 @@ func emojiToHex(emoji string) (output string) {
 
 	output = strings.Join(hexParts, "-")
 	return
+}
+
+var reg = regexp.MustCompile(`[^a-zA-Z0-9]+`)
+
+func toSnakeCase(input string) string {
+	return strings.ToLower(reg.ReplaceAllString(input, "_"))
 }
